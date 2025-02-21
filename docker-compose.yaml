@@ -1,0 +1,12 @@
+services:
+  app:
+    build: .
+    ports:
+      - "8000:5000"
+    develop:
+      watch:
+        - action: sync
+          path: .
+          target: /app
+  redis:
+    image: "redis:alpine"
