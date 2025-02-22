@@ -1,2 +1,4 @@
-flask
+Flask
 redis
+pyrebase4
+flask_sqlalchemy

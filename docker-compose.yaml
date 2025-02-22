@@ -1,12 +1,16 @@
+version: '3.8'
+
 services:
   app:
     build: .
     ports:
       - "8000:5000"
-    develop:
-      watch:
-        - action: sync
-          path: .
-          target: /app
+    volumes:
+      - ./data:/app/data  # Monta un volumen para la base de datos
+    environment:
+      - FLASK_ENV=development
+    depends_on:
+      - redis
+
   redis:
     image: "redis:alpine"

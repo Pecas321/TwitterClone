@@ -1,11 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
-    
-</body>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Document</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+        <link rel="stylesheet" href="../static/styles.css">
+        <script src="https://kit.fontawesome.com/d9d82caa91.js" crossorigin="anonymous"></script>
+    </head>
+    <h1>Bienvenido al Clon de Twitter</h1>
+    <form action="/tweet" method="POST">
+        <textarea name="content" placeholder="Escribe tu tweet..." required></textarea>
+        <button type="submit">Publicar</button>
+    </form>
+
+    <h2>Tweets</h2>
+    {% for tweet in tweets %}
+    <div>
+        <p>{{ tweet.contenido }}</p>
+        <small>Publicado por {{ tweet.user.name }} el {{ tweet.fecha_publicacion }}</small>
+    </div>
+    <div>
+        <p>{{ tweet.contenido }}</p>
+        <small>Publicado por {{ tweet.user.name }} el {{ tweet.fecha_publicacion }}</small>
+        <form action="{{ url_for('like', tweet_id=tweet.id) }}" method="POST" style="display:inline;">
+            <button type="submit">Like</button>
+        </form>
+        <form action="{{ url_for('retweet', tweet_id=tweet.id) }}" method="POST" style="display:inline;">
+            <button type="submit">Retweet</button>
+        </form>
+    </div>
+    {% endfor %}
+    </body>
 </html>
