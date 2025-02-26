@@ -1,12 +1,10 @@
-version: '3.8'
-
 services:
   app:
     build: .
     ports:
       - "8000:5000"
     volumes:
-      - ./data:/app/data  # Monta un volumen para la base de datos
+      - ./data:/app/datbase  # Monta un volumen para la base de datos
     environment:
       - FLASK_ENV=development
     depends_on:
