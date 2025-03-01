@@ -1,0 +1,242 @@
+body {
+    background-color: #111;
+    color: #fff;
+    font-family: 'Arial', sans-serif;
+    text-align: center;
+}
+
+header {
+    align-items: center;
+    justify-content: space-between;
+    display: flex;
+    padding: 10px 20px;
+    background-color: transparent;
+    color: #fff;
+    font-size: 20px;
+    margin: 20px 0;
+    border-bottom: 1px solid #222222af;
+}
+
+header h1 {
+    margin-left: 50px;
+    cursor: default;
+}
+
+header button {
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    padding: 0%;
+    margin-right: 50px;
+}
+
+header button:hover {
+    color: #f00;
+    background: rgba(255, 0, 0, 0.4);
+    border: 2px solid #f00;
+}
+
+header span {
+    color: #22d;
+}
+
+#content, input {
+    border-radius: 15px;
+    background-color: transparent;
+    padding: 10px 15px;
+    margin: 10px;
+    width: 250px;
+    height: 25px;
+    border: 3px solid #fff;
+    color: #fff;
+    font-size: 15px;
+}
+
+button {
+    background-color: transparent;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    border: 2px solid #fff;
+    padding: 10px 20px;
+    cursor: pointer;
+    border-radius: 10px;
+    margin: 10px;
+    width: 80px;
+    height: 35px;
+}
+
+.btnTweet:hover {
+    background-color: rgba(68, 68, 221, 0.199);
+    color: #22d;
+    border: 2px solid #22d;
+}
+
+.btnTweet {
+    height: 45px;
+    width: 150px;
+    font-size: 15px;
+}
+
+.tweet {
+    height: 50px;
+    width: 100%;
+}
+
+.tw-h2 {
+    border-bottom: 2px solid #222222af;
+    font-size: 25px;
+    margin-bottom: 35px;
+    cursor: default;
+}
+
+.tw-in { 
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 20px;
+}
+
+
+.tw-in span {
+    font-weight: 900;
+}
+
+.btns {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 15px;
+}
+
+.tweet button {
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    color: #fff;
+}
+
+.tweet p {
+    font-size: 18px;
+    cursor: default;
+    padding: 10px 0;
+    width: 15%;
+}
+
+.contenido {
+    font-size: 25px;
+}
+
+.tweet {
+    text-align: justify;
+}
+
+.tweet .p-in {
+    font-size: 15px;
+    cursor: default;
+    padding: 20px 0;
+}
+
+.p-in span {
+    font-weight: bold;
+}
+
+.tweets {
+    margin-top: 50px;
+    border-top: 2px solid #222222af;
+    height: 100%;
+}
+
+.like, .retweet {
+    display: flex;
+    justify-content: space-between;
+    margin-right: 20px;
+
+}
+
+.like p, .retweet p {
+    margin: 5px 5px;
+}
+
+.like button:hover {
+    border: 2px solid #f00;
+    background: #0000003f;
+    color: #f00;
+}
+
+.retweet button:hover {
+    border: 2px solid #22d;
+    background: #0000003f;
+    color: #22d;
+}
+
+.commentBtn:hover {
+    border: 2px solid #22d;
+    color: #22d;
+}
+
+.titulo {
+    margin-top: 50px;
+    cursor: default;
+    font-size: 45px;
+}
+
+.titulo span {
+    color: #22d;
+}
+
+.session {
+    margin-top: 70px;
+    display: flex;
+    width: 100%;
+    justify-content: center;
+}
+
+.login, .registro {
+    text-align: center;
+    justify-content: center;
+    display: grid;
+    width: 50%;
+    max-width: 50%;
+}
+
+.registro button {
+    padding: 0%;
+}
+
+.registro h1 {
+    margin-bottom: 60px;
+}
+
+.registro input {
+    margin-bottom: 25px;
+}
+
+.login button, .registro button {
+    width: 150px;
+    height: 45px;
+    font-size: 15px;
+}
+
+.login span {
+    color: #22d;
+}
+
+.login button {
+    display: flex;
+    justify-content: center;  
+    align-items: center;  
+    gap: 8px;
+}
+
+.login button:hover, .registro button:hover {
+    background: rgba(34, 34, 221, 0.185);
+    border: 2px solid #22d;
+}
+
+
+.login input, .registro input {
+    width: 450px;
+    height: 40px;
+    font-size: 20px;
+}
+
