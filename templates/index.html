@@ -1,35 +1,63 @@
 <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Document</title>
-        <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-        <link rel="stylesheet" href="../static/styles.css">
-        <script src="https://kit.fontawesome.com/d9d82caa91.js" crossorigin="anonymous"></script>
-    </head>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Twitter Clone</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="https://kit.fontawesome.com/d9d82caa91.js" crossorigin="anonymous"></script>
+</head>
+<body>
     <h1>Bienvenido al Clon de Twitter</h1>
+
+    <!-- Formulario para publicar un tweet -->
     <form action="/tweet" method="POST">
         <textarea name="content" placeholder="Escribe tu tweet..." required></textarea>
         <button type="submit">Publicar</button>
     </form>
 
     <h2>Tweets</h2>
+
+    <!-- Lista de tweets -->
     {% for tweet in tweets %}
-    <div>
+    <div class="tweet">
         <p>{{ tweet.contenido }}</p>
-        <small>Publicado por {{ tweet.user.name }} el {{ tweet.fecha_publicacion }}</small>
-    </div>
-    <div>
-        <p>{{ tweet.contenido }}</p>
-        <small>Publicado por {{ tweet.user.name }} el {{ tweet.fecha_publicacion }}</small>
+        <small>Publicado por {{ tweet.usuario.nombre }} el {{ tweet.fecha_publicacion }}</small>
+
+        <!-- Botones para like y retweet -->
         <form action="{{ url_for('like', tweet_id=tweet.id) }}" method="POST" style="display:inline;">
             <button type="submit">Like</button>
         </form>
         <form action="{{ url_for('retweet', tweet_id=tweet.id) }}" method="POST" style="display:inline;">
             <button type="submit">Retweet</button>
         </form>
+
+        <!-- Botón para ver comentarios (corregido) -->
+        <button onclick="loadComments('{{ tweet.id }}')">Ver Comentarios</button>
+
+        <!-- Sección para mostrar comentarios -->
+        <div id="comments-{{ tweet.id }}"></div>
     </div>
     {% endfor %}
-    </body>
+
+    <!-- Script para cargar comentarios -->
+    <script>
+        function loadComments(tweetId) {
+            fetch(`http://localhost:5000/comments/${tweetId}`)
+                .then(response => response.json())
+                .then(data => {
+                    const commentsDiv = document.getElementById(`comments-${tweetId}`);
+                    commentsDiv.innerHTML = data.comments.map(comment => {
+                        return `
+                            <div class="comment">
+                                <p>${comment.content}</p>
+                                <small>Comentado por ${comment.user_id} el ${new Date(comment.created_at).toLocaleString()}</small>
+                            </div>
+                        `;
+                    }).join('');
+                })
+                .catch(error => console.error('Error al cargar comentarios:', error));
+        }
+    </script>
+</body>
 </html>

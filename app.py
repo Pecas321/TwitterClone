@@ -1,9 +1,10 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 from flask_sqlalchemy import SQLAlchemy
 import pyrebase
 import redis
 import os
-from models import db, Usuario, Tweet, Like, Retweet
+from datetime import datetime
+from models import db, Usuario, Tweet, Like, Retweet, Comment
 
 app = Flask(__name__)
 cache = redis.Redis(host='redis', port=6379)
@@ -17,7 +18,7 @@ config = {
     "apiKey": "AIzaSyACR2t6OiZCAyTqaVNeZ2AvexdjOgr6x3k",
     "authDomain": "twitter-rr.firebaseapp.com",
     "projectId": "twitter-rr",
-    "storageBucket": "twitter-rr.firebasestorage.app",
+    "storageBucket": "twitter-rr.appspot.com",
     "messagingSenderId": "765127778502",
     "appId": "1:765127778502:web:70b88c756c89e6b47fb7c7",
     "measurementId": "G-2FPEM0CLX3",
@@ -82,7 +83,7 @@ def like(tweet_id):
         db.session.delete(like)
         flash('Like removed!', 'info')
     else:
-        new_like = Like(usuario_id=user_id, tweet_id =tweet_id)
+        new_like = Like(usuario_id=user_id, tweet_id=tweet_id)
         db.session.add(new_like)
         flash('Tweet liked!', 'success')
     db.session.commit()
@@ -100,6 +101,39 @@ def retweet(tweet_id):
     else:
         flash('You have already retweeted this tweet!', 'info')
     return redirect(url_for('home'))
+
+# Nueva ruta para crear un comentario
+@app.route('/comment', methods=['POST'])
+def create_comment():
+    if 'user' not in session:
+        return jsonify({'message': 'Usuario no autenticado'}), 401
+
+    data = request.get_json()
+    user_id = session['user']
+    tweet_id = data.get('tweet_id')
+    content = data.get('content')
+
+    if not tweet_id or not content:
+        return jsonify({'message': 'Faltan datos'}), 400
+
+    new_comment = Comment(user_id=user_id, tweet_id=tweet_id, content=content)
+    db.session.add(new_comment)
+    db.session.commit()
+
+    return jsonify({'message': 'Comentario creado', 'comment_id': new_comment.id}), 201
+
+# Nueva ruta para obtener comentarios de un tweet
+@app.route('/comments/<int:tweet_id>', methods=['GET'])
+def get_comments(tweet_id):
+    comments = Comment.query.filter_by(tweet_id=tweet_id).all()
+    comments_data = [{
+        'id': comment.id,
+        'user_id': comment.user_id,
+        'content': comment.content,
+        'created_at': comment.created_at
+    } for comment in comments]
+
+    return jsonify({'comments': comments_data}), 200
 
 @app.route('/logout')
 def logout():

@@ -53,3 +53,11 @@ class Retweet(db.Model):
 
     def __repr__(self):
         return f'Retweet({self.id}, usuario_id={self.usuario_id}, tweet_id={self.tweet_id}, fecha_retweet={self.fecha_retweet})'
+    
+
+class Comment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.String(100), nullable=False)  # ID del usuario que hizo el comentario
+    tweet_id = db.Column(db.Integer, nullable=False)     # ID del tweet al que pertenece el comentario
+    content = db.Column(db.String(280), nullable=False)  # Contenido del comentario
+    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())  # Fecha de creación
