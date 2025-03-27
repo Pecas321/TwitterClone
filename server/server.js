@@ -14,6 +14,19 @@ app.use(express.json());
 app.use(cors());
 app.use(cookieParser());
 
+//Daniel
+const express = require("express");
+const cors = require("cors");
+const tweetRoutes = require("./routes/tweets"); // Importar las rutas de tweets
+
+app.use(cors());
+app.use(express.json());
+
+// Usar las rutas de tweets
+app.use("/api/tweets", tweetRoutes);
+
+//Hasta aca
+
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
 
 
