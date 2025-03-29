@@ -16,7 +16,6 @@ const firebaseConfig = {
 
 const serviceAccount = JSON.parse(process.env.FIREBASE_CREDENTIALS);
 
-// Inicializar Firebase Admin SDK (para backend)
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount)
 });

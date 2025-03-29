@@ -1,13 +1,142 @@
-version: '3.8'
+# services:
+#   auth-service:
+#     build:
+#       context: ./server/auth
+#     container_name: auth-service
+#     ports:
+#       - "4000:4000"
+#     working_dir: /app
+#     env_file:
+#       - .env
+#     volumes:
+#       - ./server/firebase.js:/app/firebase.js
+#     networks:
+#       - app_network
+
+#   tweet-service:
+#     build:
+#       context: ./server/tweet
+#     container_name: tweet-service
+#     ports:
+#       - "5000:5000"
+#     working_dir: /app
+#     env_file:
+#       - .env
+#     volumes:
+#       - ./server/firebase.js:/app/firebase.js
+#     networks:
+#       - app_network
+
+#   user-service:
+#     build:
+#       context: ./server/user
+#     container_name: user-service
+#     ports:
+#       - "6000:6000"
+#     working_dir: /app
+#     env_file:
+#       - .env
+#     volumes:
+#       - ./server/firebase.js:/app/firebase.js
+#     networks:
+#       - app_network
+
+#   frontend:
+#     build: ./client 
+#     container_name: frontend
+#     ports:
+#       - "8080:80"
+#     depends_on:
+#       - api-gateway
+#     networks:
+#       - app_network
+
+#   api-gateway:
+#     build:
+#       context: ./server
+#     container_name: api-gateway
+#     ports:
+#       - "3000:3000"
+#     working_dir: /app
+#     env_file:
+#       - .env
+#     depends_on:
+#       - auth-service
+#       - tweet-service
+#       - user-service
+#     networks:
+#       - app_network
+
+# networks:
+#   app_network:
+#     driver: bridge
 
 services:
-  app:
-    build: .
-    container_name: twitter_clone
+  auth-service:
+    build:
+      context: ./server/auth
+    container_name: auth-service
+    ports:
+      - "4000:4000"
+    env_file:
+      - .env
+    volumes:
+      - ./server/firebase.js:/app/firebase.js
+    networks:
+      - app_network
+
+  tweet-service:
+    build:
+      context: ./server/tweet
+    container_name: tweet-service
+    ports:
+      - "5000:5000"
+    env_file:
+      - .env
+    volumes:
+      - ./server/firebase.js:/app/firebase.js
+    networks:
+      - app_network
+
+  user-service:
+    build:
+      context: ./server/user
+    container_name: user-service
+    ports:
+      - "6000:6000"
+    env_file:
+      - .env
+    volumes:
+      - ./server/firebase.js:/app/firebase.js
+    networks:
+      - app_network
+
+  frontend:
+    build: 
+      context: ./client
+    container_name: frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - api-gateway
+    networks:
+      - app_network
+
+  api-gateway:
+    build:
+      context: ./server
+    container_name: api-gateway
     ports:
       - "3000:3000"
-    volumes:
-      - .:/app
-    environment:
-      - NODE_ENV=production
-    depends_on: []
+    env_file:
+      - .env
+    depends_on:
+      - auth-service
+      - tweet-service
+      - user-service
+    networks:
+      - app_network
+
+networks:
+  app_network:
+    driver: bridge
