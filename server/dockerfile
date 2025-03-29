@@ -1,13 +1,16 @@
-FROM  node:18-alpine
+FROM node:18-alpine
 
 WORKDIR /app
 
-COPY package.json package-lock.json* ./
+# 1. Copia solo los archivos de dependencias primero
+COPY package.json package-lock.json ./
 
+# 2. Instala dependencias (incluyendo devDependencies para nodemon)
 RUN npm install
 
+# 3. Copia el resto del código
 COPY . .
 
+# 4. Expone el puerto y configura el comando de inicio
 EXPOSE 3000
-
 CMD ["npm", "start"]

@@ -1,163 +1,141 @@
-// import express from "express";
-// import cors from "cors";
-// import { db } from "./firebase.js";
-// import jwt from "jsonwebtoken";
-// import dotenv from "dotenv";
-
-// dotenv.config();
-// const app = express();
-// app.use(express.json());
-// app.use(cors());
-
-// const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
-
-// const authenticate = (req, res, next) => {
-//     const token = req.headers.authorization?.split(" ")[1];
-//     if (!token) return res.status(401).json({ error: "No autenticado" });
-
-//     try {
-//         const decoded = jwt.verify(token, JWT_SECRET);
-//         req.user = decoded;
-//         next();
-//     } catch (error) {
-//         return res.status(403).json({ error: "Token inválido" });
-//     }
-// };
-
-// app.post("/tweet", authenticate, async (req, res) => {
-//     const { content, fechaPublicacion } = req.body;
-//     try {
-//         const tweetRef = await db.collection("tweets").add({
-//             content,
-//             fecha_publicacion: fechaPublicacion,
-//             uid: req.user.uid
-//         });
-//         res.status(201).json({ message: "Tweet exitoso", tweetId: tweetRef.id });
-//     } catch (error) {
-//         res.status(400).json({ error: error.message });
-//     }
-// });
-
-// app.get("/tweets", async (req, res) => {
-//     try {
-//         const tweetsSnapshot = await db.collection("tweets").get();
-//         const tweets = [];
-
-//         for (const doc of tweetsSnapshot.docs) {
-//             const tweetData = doc.data();
-//             const tid = doc.id;
-//             const uid = tweetData.uid;
-
-//             const usuarioSnapshot = await db.collection("usuarios").doc(uid).get();
-//             const usuarioData = usuarioSnapshot.exists ? usuarioSnapshot.data() : { nombre: "Desconocido" };
-
-//             const likesSnapshot = await db.collection("likes").where("tid", "==", tid).get();
-//             const totalLikes = likesSnapshot.size;
-
-//             const fechaOriginal = new Date(tweetData.fecha_publicacion);
-//             const fechaFormateada = `${fechaOriginal.getDate().toString().padStart(2, '0')}/${(fechaOriginal.getMonth() + 1).toString().padStart(2, '0')}/${fechaOriginal.getFullYear()}`;
-
-//             tweets.push({
-//                 id: doc.id,
-//                 content: tweetData.content,
-//                 fecha_publicacion: fechaFormateada,
-//                 nombre: usuarioData.nombre,
-//                 uid: uid,
-//                 likes: totalLikes 
-//             });
-//         }
-
-//         res.status(200).json(tweets);
-//     } catch (error) {
-//         res.status(500).json({ error: error.message });
-//     }
-// });
-
-// app.get("/", (req, res) => {
-//     res.send("Tweet Service funcionando!");
-// });
-  
-
-// const PORT = 5000;
-// app.listen(PORT, () => {
-//     console.log(`Tweet Service corriendo en http://localhost:${PORT}`);
-// });
-
 import express from 'express';
 import cors from 'cors';
+import axios from 'axios';
 import { db } from './firebase.js';
 import dotenv from 'dotenv';
 
+// Configuración inicial
 dotenv.config();
-
 const app = express();
 
-// Configuración CORS específica
+// Middlewares
 app.use(cors({
-  origin: ['http://localhost:8080', 'http://frontend'],
+  origin: ['http://localhost:8080', 'http://frontend', 'http://auth-service'],
   credentials: true
 }));
-
 app.use(express.json());
 
-// Rutas actualizadas
-app.get('/tweets', async (req, res) => {
-  try {
-    const tweetsSnapshot = await db.collection('tweets').get();
-    const tweets = [];
-    
-    for (const doc of tweetsSnapshot.docs) {
-        const tweetData = doc.data();
-        const tid = doc.id;
-        const uid = tweetData.uid;
-
-        const usuarioSnapshot = await db.collection("usuarios").doc(uid).get();
-        const usuarioData = usuarioSnapshot.exists ? usuarioSnapshot.data() : { nombre: "Desconocido" };
-
-        const likesSnapshot = await db.collection("likes").where("tid", "==", tid).get();
-        const totalLikes = likesSnapshot.size;
-
-        const fechaOriginal = new Date(tweetData.fecha_publicacion);
-        const fechaFormateada = `${fechaOriginal.getDate().toString().padStart(2, '0')}/${(fechaOriginal.getMonth() + 1).toString().padStart(2, '0')}/${fechaOriginal.getFullYear()}`;
-
-        tweets.push({
-            id: doc.id,
-            content: tweetData.content,
-            fecha_publicacion: fechaFormateada,
-            nombre: usuarioData.nombre,
-            uid: uid,
-            likes: totalLikes 
-        });
-    }
-        
-    
-    res.status(200).json(tweets);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+// ==================== MIDDLEWARE DE AUTENTICACIÓN ====================
+/**
+ * Valida el token JWT llamando al auth-service
+ */
+const authenticate = async (req, res, next) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  
+  if (!token) {
+    return res.status(401).json({ error: 'Token no proporcionado' });
   }
-});
 
-app.post('/tweet', async (req, res) => {
   try {
-    const { content, uid } = req.body;
+    // Llamada al auth-service para validar el token
+    const response = await axios.get('http://auth-service:4000/auth/validate-token', {
+      headers: { Authorization: `Bearer ${token}` }
+    });
     
-    if (!content || !uid) {
-      return res.status(400).json({ error: 'Content and UID are required' });
+    if (!response.data.success) {
+      throw new Error('Token inválido');
     }
-    
+
+    req.user = response.data.user; // Guarda los datos del usuario
+    next();
+  } catch (error) {
+    console.error('Error en autenticación:', error.message);
+    res.status(403).json({ error: 'Token inválido o expirado' });
+  }
+};
+
+// ==================== ENDPOINTS ====================
+
+/**
+ * @route POST /tweets
+ * @desc Crea un nuevo tweet (protegido)
+ */
+app.post('/tweets', authenticate, async (req, res) => {
+  try {
+    const { content } = req.body;
+    const { uid, email } = req.user; // Obtenido del auth-service
+
+    if (!content || content.length > 280) {
+      return res.status(400).json({ error: 'El contenido debe tener entre 1 y 280 caracteres' });
+    }
+
     const tweetRef = await db.collection('tweets').add({
       content,
       uid,
-      createdAt: new Date().toISOString()
+      email,
+      createdAt: new Date().toISOString(),
+      likes: 0
     });
-    
-    res.status(201).json({ id: tweetRef.id });
+
+    res.status(201).json({
+      id: tweetRef.id,
+      content,
+      user: { uid, email }
+    });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Error al crear tweet:', error);
+    res.status(500).json({ error: 'Error al crear el tweet' });
   }
 });
 
-const PORT = 5000;
+/**
+ * @route GET /tweets
+ * @desc Obtiene todos los tweets con sus metadatos
+ */
+app.get('/tweets', async (req, res) => {
+  try {
+    const tweetsSnapshot = await db.collection('tweets')
+      .orderBy('createdAt', 'desc')
+      .get();
+
+    const tweets = await Promise.all(
+      tweetsSnapshot.docs.map(async (doc) => {
+        const tweetData = doc.data();
+        
+        // Obtener información del usuario (podría cachearse)
+        const userSnapshot = await db.collection('users').doc(tweetData.uid).get();
+        const userData = userSnapshot.data() || { name: 'Usuario desconocido' };
+
+        return {
+          id: doc.id,
+          content: tweetData.content,
+          createdAt: formatDate(tweetData.createdAt),
+          user: {
+            uid: tweetData.uid,
+            name: userData.name,
+            email: tweetData.email
+          },
+          likes: tweetData.likes || 0
+        };
+      })
+    );
+
+    res.status(200).json(tweets);
+  } catch (error) {
+    console.error('Error al obtener tweets:', error);
+    res.status(500).json({ error: 'Error al obtener tweets' });
+  }
+});
+
+// ==================== UTILIDADES ====================
+
+/**
+ * Formatea la fecha para mostrarla
+ */
+function formatDate(isoString) {
+  const date = new Date(isoString);
+  return date.toLocaleString('es-ES', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+}
+
+// ==================== INICIAR SERVIDOR ====================
+
+const PORT = process.env.TWEET_PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`Tweet service running on port ${PORT}`);
+  console.log(`Tweet Service running on http://localhost:${PORT}`);
 });
