@@ -20,10 +20,8 @@ admin.initializeApp({
     credential: admin.credential.cert(serviceAccount)
 });
 
-const db = admin.firestore();
-
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
-export { auth, signInWithEmailAndPassword, createUserWithEmailAndPassword, db };
+export { auth, signInWithEmailAndPassword, createUserWithEmailAndPassword };
 

@@ -9,4 +9,4 @@ RUN npm install
 COPY . .
 
 EXPOSE 5000
-CMD ["node", "tweet.js"]
+CMD ["npm", "run", "dev"]

@@ -10,4 +10,4 @@ RUN npm install
 COPY . .
 
 EXPOSE 6000
-CMD ["node", "user.js"]
+CMD ["npm", "run", "dev"]
