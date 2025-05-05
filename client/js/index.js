@@ -13,29 +13,29 @@ async function initializeApp() {
             throw new Error("Elementos esenciales del DOM no encontrados");
         }
 
-        tweetBtn.addEventListener("click", handleTweetSubmit);
-        logoutBtn.addEventListener("click", handleLogout);
+        tweetBtn.addEventListener("click", tweet);
+        logoutBtn.addEventListener("click", logout);
 
         await loadTweets();
 
     } catch (error) {
         console.error("Error inicializando la aplicación:", error);
-        showError("Error al iniciar la aplicación. Por favor recarga la página.");
+        errors("Error al iniciar la aplicación. Por favor recarga la página.");
     }
 }
 
-async function handleTweetSubmit() {
+async function tweet() {
     try {
         const tweetContent = document.getElementById("tweetContent").value.trim();
         
         if (!tweetContent) {
-            showError("Por favor escribe algo para twittear");
+            errors("Por favor escribe algo para twittear");
             return;
         }
 
-        const token = getCookie("token");
+        const token = cookies("token");
         if (!token) {
-            showError("No estás autenticado. Por favor inicia sesión.");
+            errors("No estás autenticado. Por favor inicia sesión.");
             return;
         }
 
@@ -59,11 +59,11 @@ async function handleTweetSubmit() {
 
         document.getElementById("tweetContent").value = "";
         await loadTweets();
-        showSuccess("¡Tweet publicado con éxito!");
+        msj("¡Tweet publicado con éxito!");
 
     } catch (error) {
         console.error("Error al publicar tweet:", error);
-        showError(`Error al publicar tweet: ${error.message}`);
+        errors(`Error al publicar tweet: ${error.message}`);
     }
 }
 
@@ -83,7 +83,7 @@ async function loadTweets() {
 
     } catch (error) {
         console.error("Error cargando tweets:", error);
-        showError("Error al cargar tweets. Intenta nuevamente.");
+        errors("Error al cargar tweets. Intenta nuevamente.");
     }
 }
 
@@ -121,10 +121,10 @@ async function renderTweets(tweets) {
       </div>
     `).join("");
     
-    setupTweetButtons();
+    buttons();
   }
 
-async function handleLogout() {
+async function logout() {
     try {
         const response = await fetch(`${API_BASE_URL}/logout`, {
             method: "POST",
@@ -139,31 +139,31 @@ async function handleLogout() {
 
     } catch (error) {
         console.error("Error al cerrar sesión:", error);
-        showError("Error al cerrar sesión. Intenta nuevamente.");
+        errors("Error al cerrar sesión. Intenta nuevamente.");
     }
 }
 
-function getCookie(name) {
+function cookies(name) {
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
     if (parts.length === 2) return parts.pop().split(';').shift();
 }
 
-function showError(message) {
-    const errorElement = document.getElementById("error-message") || createMessageElement("error-message");
+function errors(message) {
+    const errorElement = document.getElementById("error-message") || msjElement("error-message");
     errorElement.textContent = message;
     errorElement.style.display = "block";
     setTimeout(() => errorElement.style.display = "none", 5000);
 }
 
-function showSuccess(message) {
-    const successElement = document.getElementById("success-message") || createMessageElement("success-message");
+function msj(message) {
+    const successElement = document.getElementById("success-message") || msjElement("success-message");
     successElement.textContent = message;
     successElement.style.display = "block";
     setTimeout(() => successElement.style.display = "none", 3000);
 }
 
-function createMessageElement(id) {
+function msjElement(id) {
     const element = document.createElement("div");
     element.id = id;
     element.style.padding = "10px";
@@ -185,24 +185,24 @@ function createMessageElement(id) {
     return element;
 }
 
-function setupTweetButtons() {
+function buttons() {
     document.querySelectorAll(".likeBtn").forEach(button => {
-        button.addEventListener("click", handleLike);
+        button.addEventListener("click", like);
     });
     
     document.querySelectorAll(".retweetBtn").forEach(button => {
-        button.addEventListener("click", handleRetweet);
+        button.addEventListener("click", retweet);
     });
 }
 
-async function handleLike(event) {
+async function like(event) {
     try {
       const tweetElement = event.target.closest(".tweet");
       const tweetId = tweetElement.getAttribute("data-tweet-id");
-      const token = getCookie("token");
+      const token = cookies("token");
       
       if (!token) {
-        showError("Debes iniciar sesión para dar like");
+        errors("Debes iniciar sesión para dar like");
         return;
       }
   
@@ -232,14 +232,17 @@ async function handleLike(event) {
         likeIcon.classList.replace('fa-solid', 'fa-regular');
         likeIcon.style.color = '';
       }
+
+      await updateTweets(tweetId);
+      await loadTweets(); 
       
     } catch (error) {
       console.error("Error al dar like:", error);
-      showError(error.message);
+      errors(error.message);
     }
   }
 
-  async function handleRetweet(event) {
+  async function retweet(event) {
     try {
       const tweetElement = event.target.closest(".tweet");
       const tweetId = tweetElement.getAttribute("data-tweet-id");
@@ -248,7 +251,7 @@ async function handleLike(event) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${getCookie("token")}`
+          "Authorization": `Bearer ${cookies("token")}`
         },
         credentials: "include",
         body: JSON.stringify({ tid: tweetId })
@@ -258,17 +261,17 @@ async function handleLike(event) {
         throw new Error("Error al hacer retweet");
       }
       
-      await updateTweetStats(tweetId);
+      await updateTweets(tweetId);
       await loadTweets(); 
       
     } catch (error) {
       console.error("Error al hacer retweet:", error);
-      showError("Error al hacer retweet. Intenta nuevamente.");
+      errors("Error al hacer retweet. Intenta nuevamente.");
     }
   }
   
 
-  async function updateTweetStats(tweetId) {
+  async function updateTweets(tweetId) {
     try {
       const response = await fetch(`${API_BASE_URL}/stats/${tweetId}`);
       const stats = await response.json();

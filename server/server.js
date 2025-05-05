@@ -1,7 +1,6 @@
 import express from "express";
 import proxy from "express-http-proxy";
 import cookieParser from "cookie-parser";
-import jwt from "jsonwebtoken";
 import cors from "cors";
 import dotenv from "dotenv";
 
@@ -39,9 +38,9 @@ app.use((req, res, next) => {
     next();
 });
 
-const AUTH_SERVICE = process.env.AUTH_SERVICE || 'http://auth_service:4000';
-const TWEET_SERVICE = process.env.TWEET_SERVICE || 'http://tweet_service:5000';
-const USER_SERVICE = process.env.USER_SERVICE || 'http://user_service:6000';
+const AUTH_SERVICE = process.env.AUTH_SERVICE || 'http://localhost:4000';
+const TWEET_SERVICE = process.env.TWEET_SERVICE || 'http://localhost:5000';
+const USER_SERVICE = process.env.USER_SERVICE || 'http://localhost:6000';
 
 const proxyOptions = {
   proxyReqPathResolver: (req) => req.url,
@@ -60,19 +59,6 @@ const proxyOptions = {
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
-function isAuthenticated(req, res, next) {
-    const token = req.cookies.token;
-    if (!token) return res.status(401).json({ error: "No autenticado" });
-
-    try {
-        jwt.verify(token, JWT_SECRET);
-        next();
-    } catch (error) {
-        return res.status(403).json({ error: "Token inválido" });
-    }
-}
-
-
 app.post("/register", async (req, res) => {
     try {
         const response = await fetch(`${AUTH_SERVICE}/register`, {
@@ -84,7 +70,7 @@ app.post("/register", async (req, res) => {
         const data = await response.json();
         if (response.ok) {
           res.cookie('token', data.token, {
-            httpOnly: true,
+            // httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'lax',
             maxAge: 3600000 
@@ -103,7 +89,6 @@ app.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
     
-
     if (!email || !password) {
       return res.status(400).json({ error: 'Email y contraseña son requeridos' });
     }
@@ -120,9 +105,8 @@ app.post('/login', async (req, res) => {
       return res.status(response.status).json(data);
     }
 
-
     res.cookie('token', data.token, {
-      httpOnly: true,
+      // httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       maxAge: 3600000 
